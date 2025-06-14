@@ -4,9 +4,11 @@ import { useState } from "react";
 import { auth, provider } from "./config/firebase";
 import { signInWithPopup, signOut } from "firebase/auth";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import LogoImage from "@/../public/logo.png";
 
 export default function Home() {
+  const router = useRouter();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -18,6 +20,7 @@ export default function Home() {
       const result = await signInWithPopup(auth, provider);
       setUser(result.user);
       console.log("Login successful:", result.user);
+      router.push("/mapbox");
     } catch (error) {
       console.error("Login error:", error);
       setError(error.message);
@@ -38,7 +41,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
-      <div className="text-center">
+      <div className="text-center flex flex-col items-center justify-center">
         <h1 className="text-4xl font-bold mb-2">TuneMap</h1>
         <div className="flex justify-center items-center mb-8">
           <Image src={LogoImage} alt="logo" width={140} height={140} />
@@ -50,26 +53,7 @@ export default function Home() {
           </div>
         )}
 
-        {user ? (
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <div className="flex items-center justify-center mb-4">
-              {user.photoURL && (
-                <img
-                  src={user.photoURL}
-                  alt="Profile"
-                  className="w-16 h-16 rounded-full"
-                />
-              )}
-            </div>
-            <p className="text-lg mb-4">Welcome, {user.displayName}!</p>
-            <button
-              onClick={handleLogout}
-              className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg transition-colors duration-200"
-            >
-              Logout
-            </button>
-          </div>
-        ) : (
+        {!user && (
           <button
             onClick={handleGoogleLogin}
             disabled={loading}
