@@ -4,10 +4,14 @@ import { useState } from "react";
 import { auth, provider } from "./config/firebase";
 import { signInWithPopup, signOut } from "firebase/auth";
 
-export default function Home() {
+// import { useRouter } from "next/navigation"; // 串接到新版 UI 地圖畫面
+
+
+export default function Home() {  
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  // const router = useRouter();// 串接到新版 UI 地圖畫面
 
   const handleGoogleLogin = async () => {
     try {
@@ -16,6 +20,7 @@ export default function Home() {
       const result = await signInWithPopup(auth, provider);
       setUser(result.user);
       console.log("Login successful:", result.user);
+      // router.push("/Home");// 串接到新版 UI 地圖畫面:登入後自動導航
     } catch (error) {
       console.error("Login error:", error);
       setError(error.message);
