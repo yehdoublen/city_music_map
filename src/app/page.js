@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { auth, provider } from "./config/firebase";
 import { signInWithPopup, signOut } from "firebase/auth";
+import Image from "next/image";
+import LogoImage from "@/../public/logo.png";
 
 export default function Home() {
   const [user, setUser] = useState(null);
@@ -37,7 +39,10 @@ export default function Home() {
   return (
     <main className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
       <div className="text-center">
-        <h1 className="text-4xl font-bold mb-8">City Music Map</h1>
+        <h1 className="text-4xl font-bold mb-2">TuneMap</h1>
+        <div className="flex justify-center items-center mb-8">
+          <Image src={LogoImage} alt="logo" width={140} height={140} />
+        </div>
         
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
@@ -68,7 +73,7 @@ export default function Home() {
           <button
             onClick={handleGoogleLogin}
             disabled={loading}
-            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition-colors duration-200 flex items-center"
+            className="bg-black hover:bg-gray-800 text-white font-bold py-4 px-8 rounded-full transition-colors duration-200 flex items-center"
           >
             {loading ? (
               <span>Loading...</span>
