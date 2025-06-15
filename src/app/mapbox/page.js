@@ -25,6 +25,7 @@ export default function Mapbox() {
   const songInputRef = useRef();
   const [activeUserInfo, setActiveUserInfo] = useState(null);
   const [nowPlayingMap, setNowPlayingMap] = useState({});
+  const [activeShopInfo, setActiveShopInfo] = useState(null);
 
   
 
@@ -407,12 +408,43 @@ export default function Mapbox() {
               longitude={shop.longitude}
               latitude={shop.latitude}
             >
-              <div
-                className={`w-6 h-6 rounded-full shadow-lg flex items-center justify-center${!isCustomColor ? ` bg-${shop.color || 'red'}-500` : ''}`}
-                style={isCustomColor ? { backgroundColor: colorMap[shop.color] } : {}}
-                title={shop.name}
-                onClick={() => alert(shop.name)}
-              ></div>
+              <div className="relative flex flex-col items-center">
+                {/* 地點資訊浮層 */}
+                {activeShopInfo === shop.id && (
+                  <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-6 bg-white rounded-lg shadow-lg px-4 py-2 border w-64 z-50">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="font-bold">{shop.name}</span>
+                      <button className="text-gray-400 hover:text-gray-600" onClick={() => setActiveShopInfo(null)}>&times;</button>
+                    </div>
+                    <div className="text-sm text-gray-600 mb-2">{shop.address}</div>
+                    {shop.song && (
+                      <>
+                        <div className="text-lg font-bold">{shop.song}</div>
+                        <div className="text-gray-600">{shop.artist}</div>
+                      </>
+                    )}
+                    {shop.youtube && getYoutubeId(shop.youtube) && (
+                      <div className="mt-2">
+                        <iframe
+                          width="100%"
+                          height="120"
+                          src={`https://www.youtube.com/embed/${getYoutubeId(shop.youtube)}`}
+                          title="YouTube video player"
+                          frameBorder="0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        ></iframe>
+                      </div>
+                    )}
+                  </div>
+                )}
+                <div
+                  className={`w-6 h-6 rounded-full shadow-lg flex items-center justify-center${!isCustomColor ? ` bg-${shop.color || 'red'}-500` : ''}`}
+                  style={isCustomColor ? { backgroundColor: colorMap[shop.color] } : {}}
+                  title={shop.name}
+                  onClick={() => setActiveShopInfo(activeShopInfo === shop.id ? null : shop.id)}
+                ></div>
+              </div>
             </Marker>
           );
         })}
