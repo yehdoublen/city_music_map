@@ -87,7 +87,7 @@ export default function UploadPage() {
           />
           <input
             type="url"
-            placeholder="Youtube 連結 (可選)"
+            placeholder="位置名稱"
             value={youtube}
             onChange={(e) => setYoutube(e.target.value)}
             className="border rounded-full px-3 py-3"
