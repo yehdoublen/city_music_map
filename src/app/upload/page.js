@@ -26,7 +26,6 @@ export default function UploadPage() {
   const [loadingVideoInfo, setLoadingVideoInfo] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
-    address: "",
     youtube: "",
     song: "",
     artist: "",
@@ -113,15 +112,6 @@ export default function UploadPage() {
             name="name"
             placeholder="位置名稱"
             value={formData.name}
-            onChange={handleChange}
-            required
-            className="border rounded-full px-3 py-3"
-          />
-          <input
-            type="text"
-            name="address"
-            placeholder="地址"
-            value={formData.address}
             onChange={handleChange}
             required
             className="border rounded-full px-3 py-3"

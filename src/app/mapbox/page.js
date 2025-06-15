@@ -5,7 +5,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 import { auth, db } from '../config/firebase';
-import { collection, onSnapshot, doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
+import { collection, onSnapshot, doc, getDoc, setDoc, deleteDoc, addDoc, query, where } from 'firebase/firestore';
 import Image from 'next/image';
 import SearchBar from '../../components/ui/SearchBar';
 
@@ -26,6 +26,9 @@ export default function Mapbox() {
   const [activeUserInfo, setActiveUserInfo] = useState(null);
   const [nowPlayingMap, setNowPlayingMap] = useState({});
   const [activeShopInfo, setActiveShopInfo] = useState(null);
+  const [searchSong, setSearchSong] = useState("");
+  const [userFavorites, setUserFavorites] = useState([]);
+  const [showFavoritesModal, setShowFavoritesModal] = useState(false);
 
   
 
@@ -90,6 +93,36 @@ export default function Mapbox() {
     });
     return () => unsubscribe();
   }, []);
+
+  // 監聽使用者收藏
+  useEffect(() => {
+    if (!user) return;
+    const q = collection(db, 'user_favorites', user.uid, 'items');
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const favs = [];
+      querySnapshot.forEach((doc) => {
+        favs.push({ id: doc.id, ...doc.data() });
+      });
+      setUserFavorites(favs);
+    });
+    return () => unsubscribe();
+  }, [user]);
+
+  // 收藏/取消收藏
+  const toggleFavorite = async (favType, favId, favData) => {
+    if (!user) return;
+    const favRef = collection(db, 'user_favorites', user.uid, 'items');
+    // 判斷是否已收藏
+    const exists = userFavorites.some(fav => fav.type === favType && fav.refId === favId);
+    if (exists) {
+      // 取消收藏
+      const toDelete = userFavorites.find(fav => fav.type === favType && fav.refId === favId);
+      if (toDelete) await deleteDoc(doc(favRef, toDelete.id));
+    } else {
+      // 新增收藏
+      await addDoc(favRef, { type: favType, refId: favId, ...favData, createdAt: new Date() });
+    }
+  };
 
   // 取得目前使用者歌曲資訊
   const fetchNowPlaying = async () => {
@@ -245,12 +278,27 @@ export default function Mapbox() {
 
       {/* 右上角搜尋欄 */}
       <div className="absolute top-4 right-4 z-10 w-72 max-w-xs h-12 flex items-center">
-        <SearchBar className="h-full" />
+        <input
+          type="text"
+          placeholder="搜尋歌曲名稱..."
+          value={searchSong}
+          onChange={e => setSearchSong(e.target.value)}
+          className="h-full w-full rounded-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white text-black placeholder-gray-400"
+        />
+        {searchSong && (
+          <button
+            className="absolute right-2 text-gray-400 hover:text-gray-600 text-xl"
+            onClick={() => setSearchSong("")}
+            title="清除搜尋"
+          >
+            ×
+          </button>
+        )}
       </div>
 
       {/* 右下角上傳和收藏按鈕 */}
       <div className="absolute bottom-4 right-4 z-10 flex flex-col gap-4">
-        <button onClick={() => router.push('/collect')}>
+        <button onClick={() => setShowFavoritesModal(true)}>
           <Image src="/collect.png" alt="Collect" width={50} height={50} />
         </button>
         <button onClick={() => router.push('/upload')}>
@@ -342,6 +390,51 @@ export default function Mapbox() {
         </div>
       )}
 
+      {/* 收藏彈窗 */}
+      {showFavoritesModal && (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/70" onClick={() => setShowFavoritesModal(false)} />
+          <div className="relative z-10 w-full max-w-lg mx-auto flex flex-col items-center">
+            <button
+              className="absolute top-2 right-14 text-3xl text-white hover:text-gray-300 z-20"
+              onClick={() => setShowFavoritesModal(false)}
+              title="關閉"
+            >
+              &times;
+            </button>
+            <div className="flex flex-col gap-4 w-full mt-12 mb-8 px-14">
+              {userFavorites.length === 0 ? (
+                <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500">尚未收藏任何歌曲或地點</div>
+              ) : (
+                userFavorites.map((fav) => (
+                  <div key={fav.id} className="bg-white rounded-lg shadow-lg p-4 border w-full flex flex-col items-center">
+                    <div className="w-full flex justify-between items-center mb-2">
+                      <span className="font-bold text-lg truncate max-w-[70%]">{fav.type === 'shop' ? fav.name : fav.displayName || '使用者'}</span>
+                      <span className="text-xs text-gray-400">{fav.type === 'shop' ? '地點' : '使用者'}</span>
+                    </div>
+                    {fav.song && <div className="w-full text-base font-bold truncate">{fav.song}</div>}
+                    {fav.artist && <div className="w-full text-gray-600 truncate">{fav.artist}</div>}
+                    {fav.youtube && fav.youtube.length > 0 && (
+                      <div className="w-full mt-2">
+                        <iframe
+                          width="100%"
+                          height="180"
+                          src={`https://www.youtube.com/embed/${getYoutubeId(fav.youtube)}`}
+                          title="YouTube video player"
+                          frameBorder="0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        ></iframe>
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       <Map
         mapboxAccessToken="pk.eyJ1Ijoiamllbmh1YWdvbyIsImEiOiJjbTdsNjY0MjMwNDl2MmtzZHloYXY0czNkIn0.mlD3UGH3wR3ZMJmCuHDpSQ"
         initialViewState={{
@@ -351,6 +444,10 @@ export default function Mapbox() {
         }}
         style={{ width: "100vw", height: "100vh" }}
         mapStyle="mapbox://styles/mapbox/dark-v11"
+        onClick={() => {
+          setActiveUserInfo(null);
+          setActiveShopInfo(null);
+        }}
       >
         {/* 顯示所有登入者即時位置（白色圓點） */}
         {userLocations.map((loc) => (
@@ -365,7 +462,25 @@ export default function Mapbox() {
                 <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-6 bg-white rounded-lg shadow-lg px-4 py-2 border w-64 z-50">
                   <div className="flex justify-between items-center mb-1">
                     <span className="font-bold">正在聽的歌曲</span>
-                    <button className="text-gray-400 hover:text-gray-600" onClick={() => setActiveUserInfo(null)}>&times;</button>
+                    {/* 收藏愛心按鈕 */}
+                    <button
+                      className={
+                        'ml-2 text-2xl ' +
+                        (userFavorites.some(fav => fav.type === 'user' && fav.refId === loc.uid)
+                          ? 'text-red-500'
+                          : 'text-gray-300 hover:text-red-400')
+                      }
+                      title={userFavorites.some(fav => fav.type === 'user' && fav.refId === loc.uid) ? '取消收藏' : '收藏'}
+                      onClick={() => toggleFavorite('user', loc.uid, {
+                        song: nowPlayingMap[loc.uid]?.song || '',
+                        artist: nowPlayingMap[loc.uid]?.artist || '',
+                        youtube: nowPlayingMap[loc.uid]?.youtube || '',
+                        displayName: loc.displayName || '',
+                        photoURL: loc.photoURL || '',
+                      })}
+                    >
+                      ♥
+                    </button>
                   </div>
                   {nowPlayingMap[loc.uid] ? (
                     <>
@@ -394,7 +509,7 @@ export default function Mapbox() {
                 className="w-6 h-6 rounded-full bg-white cursor-pointer"
                 style={{ boxShadow: "0 0 16px 8px #fff, 0 0 4px 2px #ffffff" }}
                 title={loc.displayName || loc.uid}
-                onClick={() => setActiveUserInfo(activeUserInfo === loc.uid ? null : loc.uid)}
+                onClick={e => { e.stopPropagation(); setActiveUserInfo(loc.uid); }}
               ></div>
             </div>
           </Marker>
@@ -402,11 +517,16 @@ export default function Mapbox() {
         {/* 顯示所有已上傳地點（彩色膠囊） */}
         {shops.map((shop) => {
           const isCustomColor = colorMap[shop.color];
+          // 搜尋過濾：有搜尋字串時，只有歌曲名稱包含該字串的高亮
+          let highlight = true;
+          if (searchSong.trim()) {
+            highlight = (shop.song || "").toLowerCase().includes(searchSong.trim().toLowerCase());
+          }
           return (
             <Marker
               key={shop.id}
-              longitude={shop.longitude}
-              latitude={shop.latitude}
+                longitude={shop.longitude}
+                latitude={shop.latitude}
             >
               <div className="relative flex flex-col items-center">
                 {/* 地點資訊浮層 */}
@@ -414,7 +534,27 @@ export default function Mapbox() {
                   <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-6 bg-white rounded-lg shadow-lg px-4 py-2 border w-64 z-50">
                     <div className="flex justify-between items-center mb-1">
                       <span className="font-bold">{shop.name}</span>
-                      <button className="text-gray-400 hover:text-gray-600" onClick={() => setActiveShopInfo(null)}>&times;</button>
+                      {/* 收藏愛心按鈕 */}
+                      <button
+                        className={
+                          'ml-2 text-2xl ' +
+                          (userFavorites.some(fav => fav.type === 'shop' && fav.refId === shop.id)
+                            ? 'text-red-500'
+                            : 'text-gray-300 hover:text-red-400')
+                        }
+                        title={userFavorites.some(fav => fav.type === 'shop' && fav.refId === shop.id) ? '取消收藏' : '收藏'}
+                        onClick={() => toggleFavorite('shop', shop.id, {
+                          name: shop.name,
+                          song: shop.song || '',
+                          artist: shop.artist || '',
+                          youtube: shop.youtube || '',
+                          color: shop.color || '',
+                          latitude: shop.latitude,
+                          longitude: shop.longitude,
+                        })}
+                      >
+                        ♥
+                      </button>
                     </div>
                     <div className="text-sm text-gray-600 mb-2">{shop.address}</div>
                     {shop.song && (
@@ -440,12 +580,16 @@ export default function Mapbox() {
                 )}
                 <div
                   className={`w-6 h-6 rounded-full shadow-lg flex items-center justify-center${!isCustomColor ? ` bg-${shop.color || 'red'}-500` : ''}`}
-                  style={isCustomColor ? { backgroundColor: colorMap[shop.color] } : {}}
+                  style={{
+                    ...(isCustomColor ? { backgroundColor: colorMap[shop.color] } : {}),
+                    opacity: highlight ? 1 : 0.1,
+                    transition: 'opacity 0.3s',
+                  }}
                   title={shop.name}
-                  onClick={() => setActiveShopInfo(activeShopInfo === shop.id ? null : shop.id)}
+                  onClick={e => { e.stopPropagation(); setActiveShopInfo(shop.id); }}
                 ></div>
               </div>
-            </Marker>
+        </Marker>
           );
         })}
       </Map>
