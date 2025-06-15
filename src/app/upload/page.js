@@ -61,7 +61,7 @@ export default function UploadPage() {
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <input
             type="text"
-            placeholder="Youtube 連結"
+            placeholder="位置名稱"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
@@ -87,7 +87,7 @@ export default function UploadPage() {
           />
           <input
             type="url"
-            placeholder="位置名稱"
+            placeholder="YouTube 連結"
             value={youtube}
             onChange={(e) => setYoutube(e.target.value)}
             className="border rounded-full px-3 py-3"
