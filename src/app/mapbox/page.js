@@ -7,11 +7,13 @@ import { useState, useEffect } from 'react';
 import { auth, db } from '../config/firebase';
 import { collection, onSnapshot } from 'firebase/firestore';
 import Image from 'next/image';
+import SearchBar from '../../components/ui/SearchBar';
 
 export default function Mapbox() {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [shops, setShops] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -43,7 +45,7 @@ export default function Mapbox() {
   }, []);
 
   return (
-    <div className="relative">
+    <div className="relative flex flex-col">
       {user && (
         <div className="absolute top-8 left-8 z-10">
           <div className="relative w-14 h-14">
@@ -57,7 +59,13 @@ export default function Mapbox() {
           </div>
         </div>
       )}
-
+      <div className="absolute top-8 left-200 z-10">
+          <SearchBar 
+                value={searchQuery}
+                onChange={setSearchQuery}
+                placeholder="搜尋歌曲或 #主題標籤"
+              />
+        </div>
       {/* 右下角按鈕 */}
       <div className="absolute bottom-4 right-4 z-10 flex flex-col gap-4">
         <button onClick={() => router.push('/collect')}>

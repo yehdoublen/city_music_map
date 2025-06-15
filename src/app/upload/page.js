@@ -90,17 +90,13 @@ export default function UploadPage() {
             onChange={(e) => setYoutube(e.target.value)}
             className="border rounded px-3 py-2"
           />
-          <select
-            value={color}
-            onChange={(e) => setColor(e.target.value)}
-            className="border rounded px-3 py-2"
-          >
-            <option value="blue">藍色</option>
-            <option value="green">綠色</option>
-            <option value="yellow">黃色</option>
-            <option value="purple">紫色</option>
-            <option value="pink">粉色</option>
-          </select>
+         
+            <button className="border border-#FDC613 rounded px-3 py-2" value="blue" onClick={() => setColor("blue")}>藍色</button>
+            <button className="border border-#B1FF1B rounded px-3 py-2" value="green" onClick={() => setColor("green")}>綠色</button>
+            <button className="border border-#FDC613 rounded px-3 py-2" value="yellow" onClick={() => setColor("yellow")}>黃色</button>
+            <button className="border border-#7A50EB rounded px-3 py-2" value="purple" onClick={() => setColor("purple")}>紫色</button>
+            <button className="border border-#FEA9E0 rounded px-3 py-2" value="pink" onClick={() => setColor("pink")}>粉色</button>
+         
           <button
             type="submit"
             disabled={loading}
