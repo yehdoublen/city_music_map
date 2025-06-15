@@ -103,9 +103,18 @@ export default function UploadPage() {
 
   return (
     <main className="min-h-screen rounded-lg flex flex-col items-center justify-center bg-gray-100">
-      <div className="items-center flex flex-col bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+      <div className="items-center flex flex-col bg-white p-8 rounded-lg shadow-md w-full max-w-md relative">
+        {/* 關閉按鈕 */}
+        <button
+          className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-300 text-2xl text-gray-500 hover:text-black transition"
+          type="button"
+          onClick={() => router.push('/mapbox')}
+          title="關閉"
+        >
+          &times;
+        </button>
         {/* <h1 className="text-2xl font-bold mb-6 text-center">新增地點資訊</h1> */}
-        <img src="/Frame.svg" alt="新增音樂" className="w-[80px] h-[80px]" />
+        <img src="/Frame.svg" alt="新增音樂" className="w-[80px] h-[80px] mb-4" />
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full">
           <input
             type="text"
@@ -134,20 +143,20 @@ export default function UploadPage() {
           </div>
           <input
             type="number"
-            name="longitude"
+            name="latitude"
             step="any"
-            placeholder="經度 (longitude)"
-            value={formData.longitude}
+            placeholder="緯度 (latitude)"
+            value={formData.latitude}
             onChange={handleChange}
             required
             className="border rounded-full px-3 py-3"
           />
           <input
             type="number"
-            name="latitude"
+            name="longitude"
             step="any"
-            placeholder="緯度 (latitude)"
-            value={formData.latitude}
+            placeholder="經度 (longitude)"
+            value={formData.longitude}
             onChange={handleChange}
             required
             className="border rounded-full px-3 py-3"

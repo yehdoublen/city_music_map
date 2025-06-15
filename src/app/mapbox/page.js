@@ -332,7 +332,7 @@ export default function Mapbox() {
                     placeholder="貼上 YouTube 連結"
                     value={youtube}
                     onChange={e => setYoutube(e.target.value)}
-                    className="border rounded px-3 py-2 w-full"
+                    className="border rounded px-3 py-2 w-full rounded-full"
                     disabled={loadingVideoInfo}
                   />
                   {loadingVideoInfo && (
@@ -341,23 +341,11 @@ export default function Mapbox() {
                     </div>
                   )}
                 </div>
-                <button
-                  className="mt-4 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded w-full"
-                  onClick={async () => {
-                    if (user) {
-                      await deleteDoc(doc(db, 'users_location', user.uid));
-                    }
-                    await auth.signOut();
-                    router.push('/');
-                  }}
-                >
-                  登出
-                </button>
               </div>
             ) : (
               <div className="flex flex-col gap-3">
                 {nowPlaying?.youtube && getYoutubeId(nowPlaying.youtube) && (
-                  <div className="mt-2">
+                  <div className="mt-2 overflow-hidden rounded-lg">
                     <iframe
                       width="100%"
                       height="180"
@@ -375,13 +363,25 @@ export default function Mapbox() {
                     <div className="text-gray-600">{nowPlaying.artist}</div>
                   </div>
                 )}
-                <div className="flex justify-center px-16">
+                <div className="flex flex-col gap-2 px-16">
                   <button
-                    className="mt-2 text-xl text-blue-500 hover:text-blue-700 w-full border border-blue-200 rounded-full p-2"
+                    className="mt-8 text-xl text-gray-700 hover:text-black w-full border border-gray-700 rounded-full p-2"
                     onClick={() => setEditMode(true)}
                     title="編輯"
                   >
                     edit
+                  </button>
+                  <button
+                    className="mt-2 text-xl bg-black hover:bg-red-600 text-white py-2 px-4 rounded-full w-full"
+                    onClick={async () => {
+                      if (user) {
+                        await deleteDoc(doc(db, 'users_location', user.uid));
+                      }
+                      await auth.signOut();
+                      router.push('/');
+                    }}
+                  >
+                    Log out
                   </button>
                 </div>
               </div>
@@ -402,7 +402,7 @@ export default function Mapbox() {
             >
               &times;
             </button>
-            <div className="flex flex-col gap-4 w-full mt-12 mb-8 px-14">
+            <div className="flex flex-col gap-4 w-full mt-12 mb-8 px-14 overflow-y-auto max-h-[70vh] hide-scrollbar">
               {userFavorites.length === 0 ? (
                 <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500">尚未收藏任何歌曲或地點</div>
               ) : (
@@ -415,7 +415,7 @@ export default function Mapbox() {
                     {fav.song && <div className="w-full text-base font-bold truncate">{fav.song}</div>}
                     {fav.artist && <div className="w-full text-gray-600 truncate">{fav.artist}</div>}
                     {fav.youtube && fav.youtube.length > 0 && (
-                      <div className="w-full mt-2">
+                      <div className="w-full mt-2 overflow-hidden rounded-lg">
                         <iframe
                           width="100%"
                           height="180"
@@ -464,22 +464,25 @@ export default function Mapbox() {
                     <span className="font-bold">正在聽的歌曲</span>
                     {/* 收藏愛心按鈕 */}
                     <button
-                      className={
-                        'ml-2 text-2xl ' +
-                        (userFavorites.some(fav => fav.type === 'user' && fav.refId === loc.uid)
-                          ? 'text-red-500'
-                          : 'text-gray-300 hover:text-red-400')
-                      }
+                      className="ml-2"
                       title={userFavorites.some(fav => fav.type === 'user' && fav.refId === loc.uid) ? '取消收藏' : '收藏'}
-                      onClick={() => toggleFavorite('user', loc.uid, {
-                        song: nowPlayingMap[loc.uid]?.song || '',
-                        artist: nowPlayingMap[loc.uid]?.artist || '',
-                        youtube: nowPlayingMap[loc.uid]?.youtube || '',
-                        displayName: loc.displayName || '',
-                        photoURL: loc.photoURL || '',
-                      })}
+                      onClick={e => {
+                        e.stopPropagation();
+                        toggleFavorite('user', loc.uid, {
+                          song: nowPlayingMap[loc.uid]?.song || '',
+                          artist: nowPlayingMap[loc.uid]?.artist || '',
+                          youtube: nowPlayingMap[loc.uid]?.youtube || '',
+                          displayName: loc.displayName || '',
+                          photoURL: loc.photoURL || '',
+                        });
+                      }}
                     >
-                      ♥
+                      <Image
+                        src={userFavorites.some(fav => fav.type === 'user' && fav.refId === loc.uid) ? '/heart_click.png' : '/heart.png'}
+                        alt="收藏"
+                        width={14}
+                        height={14}
+                      />
                     </button>
                   </div>
                   {nowPlayingMap[loc.uid] ? (
@@ -487,7 +490,7 @@ export default function Mapbox() {
                       <div className="text-lg font-bold">{nowPlayingMap[loc.uid].song}</div>
                       <div className="text-gray-600">{nowPlayingMap[loc.uid].artist}</div>
                       {nowPlayingMap[loc.uid].youtube && getYoutubeId(nowPlayingMap[loc.uid].youtube) && (
-                        <div className="mt-2">
+                        <div className="mt-2 overflow-hidden rounded-lg">
                           <iframe
                             width="100%"
                             height="120"
@@ -506,8 +509,7 @@ export default function Mapbox() {
                 </div>
               )}
               <div
-                className="w-6 h-6 rounded-full bg-white cursor-pointer"
-                style={{ boxShadow: "0 0 16px 8px #fff, 0 0 4px 2px #ffffff" }}
+                className="w-7 h-7 rounded-full bg-white cursor-pointer border-6 border-gray-500"
                 title={loc.displayName || loc.uid}
                 onClick={e => { e.stopPropagation(); setActiveUserInfo(loc.uid); }}
               ></div>
@@ -536,24 +538,27 @@ export default function Mapbox() {
                       <span className="font-bold">{shop.name}</span>
                       {/* 收藏愛心按鈕 */}
                       <button
-                        className={
-                          'ml-2 text-2xl ' +
-                          (userFavorites.some(fav => fav.type === 'shop' && fav.refId === shop.id)
-                            ? 'text-red-500'
-                            : 'text-gray-300 hover:text-red-400')
-                        }
+                        className="ml-2"
                         title={userFavorites.some(fav => fav.type === 'shop' && fav.refId === shop.id) ? '取消收藏' : '收藏'}
-                        onClick={() => toggleFavorite('shop', shop.id, {
-                          name: shop.name,
-                          song: shop.song || '',
-                          artist: shop.artist || '',
-                          youtube: shop.youtube || '',
-                          color: shop.color || '',
-                          latitude: shop.latitude,
-                          longitude: shop.longitude,
-                        })}
+                        onClick={e => {
+                          e.stopPropagation();
+                          toggleFavorite('shop', shop.id, {
+                            name: shop.name,
+                            song: shop.song || '',
+                            artist: shop.artist || '',
+                            youtube: shop.youtube || '',
+                            color: shop.color || '',
+                            latitude: shop.latitude,
+                            longitude: shop.longitude,
+                          });
+                        }}
                       >
-                        ♥
+                        <Image
+                          src={userFavorites.some(fav => fav.type === 'shop' && fav.refId === shop.id) ? '/heart_click.png' : '/heart.png'}
+                          alt="收藏"
+                          width={14}
+                          height={14}
+                        />
                       </button>
                     </div>
                     <div className="text-sm text-gray-600 mb-2">{shop.address}</div>
@@ -564,7 +569,7 @@ export default function Mapbox() {
                       </>
                     )}
                     {shop.youtube && getYoutubeId(shop.youtube) && (
-                      <div className="mt-2">
+                      <div className="mt-2 overflow-hidden rounded-lg">
                         <iframe
                           width="100%"
                           height="120"
@@ -579,10 +584,10 @@ export default function Mapbox() {
                   </div>
                 )}
                 <div
-                  className={`w-6 h-6 rounded-full shadow-lg flex items-center justify-center${!isCustomColor ? ` bg-${shop.color || 'red'}-500` : ''}`}
+                  className={`w-12 h-12 rounded-full shadow-lg flex items-center justify-center${!isCustomColor ? ` bg-${shop.color || 'red'}-500` : ''}`}
                   style={{
                     ...(isCustomColor ? { backgroundColor: colorMap[shop.color] } : {}),
-                    opacity: highlight ? 1 : 0.1,
+                    opacity: highlight ? 1 : 0.05,
                     transition: 'opacity 0.3s',
                   }}
                   title={shop.name}
