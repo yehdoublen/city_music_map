@@ -5,7 +5,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 import { auth, db } from '../config/firebase';
-import { collection, onSnapshot, doc, getDoc, setDoc } from 'firebase/firestore';
+import { collection, onSnapshot, doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
 import Image from 'next/image';
 import SearchBar from '../../components/ui/SearchBar';
 
@@ -24,6 +24,8 @@ export default function Mapbox() {
   const songInputRef = useRef();
   const [activeUserInfo, setActiveUserInfo] = useState(null);
   const [nowPlayingMap, setNowPlayingMap] = useState({});
+
+  
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -226,6 +228,9 @@ export default function Mapbox() {
                 <button
                   className="mt-4 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded w-full"
                   onClick={async () => {
+                    if (user) {
+                      await deleteDoc(doc(db, 'users_location', user.uid));
+                    }
                     await auth.signOut();
                     router.push('/');
                   }}
@@ -262,6 +267,9 @@ export default function Mapbox() {
                 <button
                   className="mt-4 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded w-full"
                   onClick={async () => {
+                    if (user) {
+                      await deleteDoc(doc(db, 'users_location', user.uid));
+                    }
                     await auth.signOut();
                     router.push('/');
                   }}
