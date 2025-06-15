@@ -5,11 +5,21 @@ import { useRouter } from "next/navigation";
 import { db } from "../config/firebase";
 import { collection, addDoc } from "firebase/firestore";
 
+const colorMap = {
+  yellow: "#FDC613",
+  blue: "#1650FE",
+  green: "#B1FF1B",
+  purple: "#7A50EB",
+  pink: "#FEA9E0"
+};
+
 export default function UploadPage() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [longitude, setLongitude] = useState("");
   const [latitude, setLatitude] = useState("");
+  const [youtube, setYoutube] = useState("");
+  const [color, setColor] = useState("red");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
@@ -24,12 +34,16 @@ export default function UploadPage() {
         name,
         longitude: parseFloat(longitude),
         latitude: parseFloat(latitude),
+        youtube,
+        color,
         createdAt: new Date(),
       });
       setSuccess(true);
       setName("");
       setLongitude("");
       setLatitude("");
+      setYoutube("");
+      setColor("red");
       setTimeout(() => router.push("/mapbox"), 1000);
     } catch (err) {
       setError("儲存失敗：" + err.message);
@@ -69,6 +83,24 @@ export default function UploadPage() {
             required
             className="border rounded px-3 py-2"
           />
+          <input
+            type="url"
+            placeholder="YouTube 連結 (可選)"
+            value={youtube}
+            onChange={(e) => setYoutube(e.target.value)}
+            className="border rounded px-3 py-2"
+          />
+          <select
+            value={color}
+            onChange={(e) => setColor(e.target.value)}
+            className="border rounded px-3 py-2"
+          >
+            <option value="blue">藍色</option>
+            <option value="green">綠色</option>
+            <option value="yellow">黃色</option>
+            <option value="purple">紫色</option>
+            <option value="pink">粉色</option>
+          </select>
           <button
             type="submit"
             disabled={loading}

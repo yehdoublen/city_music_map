@@ -78,20 +78,32 @@ export default function Mapbox() {
         style={{width: "100vw", height: "100vh"}}
         mapStyle="mapbox://styles/mapbox/dark-v11"
       >
-        {shops.map((shop) => (
-          <Marker
-            key={shop.id}
-            longitude={shop.longitude}
-            latitude={shop.latitude}
-          >
-            <div 
-              className='w-10 h-10 bg-red-500 rounded-full'
-              onClick={() => {
-                alert(shop.name)
-              }}
-            ></div>
-          </Marker>
-        ))}
+        {shops.map((shop) => {
+          const colorMap = {
+            yellow: "#FDC613",
+            blue: "#1650FE",
+            green: "#B1FF1B",
+            purple: "#7A50EB",
+            pink: "#FEA9E0"
+          };
+          const isCustomColor = colorMap[shop.color];
+          return (
+            <Marker
+              key={shop.id}
+              longitude={shop.longitude}
+              latitude={shop.latitude}
+            >
+              <div
+                className={`w-6 h-6 rounded-full flex items-center justify-center${!isCustomColor ? ` bg-${shop.color || 'red'}-500` : ''}`}
+                style={isCustomColor ? { backgroundColor: colorMap[shop.color] } : {}}
+                onClick={() => {
+                  alert(shop.name)
+                }}
+                title={shop.name}
+              ></div>
+            </Marker>
+          );
+        })}
       </Map>
     </div>
   );
