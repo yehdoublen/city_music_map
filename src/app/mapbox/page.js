@@ -7,8 +7,6 @@ import { useState, useEffect } from 'react';
 import { auth, db } from '../config/firebase';
 import { collection, onSnapshot } from 'firebase/firestore';
 import Image from 'next/image';
-import UploadIcon from "@/../public/upload.png";
-import CollectIcon from "@/../public/collect.png"
 
 export default function Mapbox() {
   const router = useRouter();
@@ -63,10 +61,10 @@ export default function Mapbox() {
       {/* 右下角按鈕 */}
       <div className="absolute bottom-4 right-4 z-10 flex flex-col gap-4">
         <button onClick={() => router.push('/collect')}>
-          <Image src={CollectIcon} alt="Collect" width={50} height={50} />
+          <Image src="/collect.png" alt="Collect" width={50} height={50} />
         </button>
         <button onClick={() => router.push('/upload')}>
-          <Image src={UploadIcon} alt="Upload" width={50} height={50} />
+          <Image src="/upload.png" alt="Upload" width={50} height={50} />
         </button>
       </div>
 

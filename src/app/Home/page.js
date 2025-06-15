@@ -12,7 +12,6 @@ import UploadModal from '../../components/ui/UploadModal';
 import { mockCapsules, mockUsers } from '../../lib/mockData';
 
 
-
 export default function Home() {
   const [viewMode, setViewMode] = useState('capsules');
   const [searchQuery, setSearchQuery] = useState('');

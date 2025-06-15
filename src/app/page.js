@@ -3,15 +3,14 @@
 import { useState } from "react";
 import { auth, provider } from "./config/firebase";
 import { signInWithPopup, signOut } from "firebase/auth";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
 
-import { useRouter } from "next/navigation"; // 串接到新版 UI 地圖畫面
-
-
-export default function Home() {  
+export default function Home() {
+  const router = useRouter();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const router = useRouter();// 串接到新版 UI 地圖畫面
 
   const handleGoogleLogin = async () => {
     try {
@@ -20,7 +19,7 @@ export default function Home() {
       const result = await signInWithPopup(auth, provider);
       setUser(result.user);
       console.log("Login successful:", result.user);
-      router.push("/Home");// 串接到新版 UI 地圖畫面
+      router.push("/mapbox");
     } catch (error) {
       console.error("Login error:", error);
       setError(error.message);
@@ -41,8 +40,11 @@ export default function Home() {
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-8">City Music Map</h1>
+      <div className="text-center flex flex-col items-center justify-center">
+        <h1 className="text-4xl font-bold mb-2">TuneMap</h1>
+        <div className="flex justify-center items-center mb-8">
+          <Image src="/logo.png" alt="logo" width={140} height={140} />
+        </div>
         
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
@@ -50,30 +52,11 @@ export default function Home() {
           </div>
         )}
 
-        {user ? (
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <div className="flex items-center justify-center mb-4">
-              {user.photoURL && (
-                <img
-                  src={user.photoURL}
-                  alt="Profile"
-                  className="w-16 h-16 rounded-full"
-                />
-              )}
-            </div>
-            <p className="text-lg mb-4">Welcome, {user.displayName}!</p>
-            <button
-              onClick={handleLogout}
-              className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg transition-colors duration-200"
-            >
-              Logout
-            </button>
-          </div>
-        ) : (
+        {!user && (
           <button
             onClick={handleGoogleLogin}
             disabled={loading}
-            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition-colors duration-200 flex items-center"
+            className="bg-black hover:bg-gray-800 text-white font-bold py-4 px-8 rounded-full transition-colors duration-200 flex items-center"
           >
             {loading ? (
               <span>Loading...</span>
