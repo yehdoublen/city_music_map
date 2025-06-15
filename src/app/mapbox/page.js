@@ -146,6 +146,38 @@ export default function Mapbox() {
     pink: "#FEA9E0"
   };
 
+  useEffect(() => {
+    if (!user) return;
+
+    let watchId;
+
+    if (navigator.geolocation) {
+      watchId = navigator.geolocation.watchPosition(
+        async (pos) => {
+          const { latitude, longitude } = pos.coords;
+          await setDoc(doc(db, 'users_location', user.uid), {
+            uid: user.uid,
+            displayName: user.displayName,
+            photoURL: user.photoURL,
+            latitude,
+            longitude,
+            updatedAt: new Date(),
+          });
+        },
+        (err) => {
+          // 可以加錯誤處理
+        },
+        { enableHighAccuracy: true }
+      );
+    }
+
+    return () => {
+      if (watchId && navigator.geolocation) {
+        navigator.geolocation.clearWatch(watchId);
+      }
+    };
+  }, [user]);
+
   return (
     <div className="relative w-full h-screen min-w-[370px]">
       {/* 左上角登入者頭像 */}
