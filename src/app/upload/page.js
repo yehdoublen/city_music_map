@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { db } from "../config/firebase";
 import { collection, addDoc } from "firebase/firestore";
 
+
 const colorMap = {
   yellow: "#FDC613",
   blue: "#1650FE",
@@ -53,17 +54,18 @@ export default function UploadPage() {
   };
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h1 className="text-2xl font-bold mb-6 text-center">新增地點資訊</h1>
+    <main className="min-h-screen rounded-lg flex flex-col items-center justify-center bg-gray-100">
+      <div className="items-center flex flex-col bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+        {/* <h1 className="text-2xl font-bold mb-6 text-center">新增地點資訊</h1> */}
+        <img src="/Frame.svg" alt="新增音樂" className="w-[80px] h-[80px]" />
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <input
             type="text"
-            placeholder="地點名稱"
+            placeholder="Youtube 連結"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
-            className="border rounded px-3 py-2"
+            className="border rounded-full px-3 py-3"
           />
           <input
             type="number"
@@ -72,7 +74,7 @@ export default function UploadPage() {
             value={longitude}
             onChange={(e) => setLongitude(e.target.value)}
             required
-            className="border rounded px-3 py-2"
+            className="border rounded-full px-3 py-3"
           />
           <input
             type="number"
@@ -81,26 +83,38 @@ export default function UploadPage() {
             value={latitude}
             onChange={(e) => setLatitude(e.target.value)}
             required
-            className="border rounded px-3 py-2"
+            className="border rounded-full px-3 py-3"
           />
           <input
             type="url"
-            placeholder="YouTube 連結 (可選)"
+            placeholder="Youtube 連結 (可選)"
             value={youtube}
             onChange={(e) => setYoutube(e.target.value)}
-            className="border rounded px-3 py-2"
+            className="border rounded-full px-3 py-3"
           />
-         
-            <button className="border border-#FDC613 rounded px-3 py-2" value="blue" onClick={() => setColor("blue")}>藍色</button>
-            <button className="border border-#B1FF1B rounded px-3 py-2" value="green" onClick={() => setColor("green")}>綠色</button>
-            <button className="border border-#FDC613 rounded px-3 py-2" value="yellow" onClick={() => setColor("yellow")}>黃色</button>
-            <button className="border border-#7A50EB rounded px-3 py-2" value="purple" onClick={() => setColor("purple")}>紫色</button>
-            <button className="border border-#FEA9E0 rounded px-3 py-2" value="pink" onClick={() => setColor("pink")}>粉色</button>
+          <div className="items-center flex gap-6 mt-5 justify-center">
+              {[
+                { value: "blue", color: "#3B82F6" },
+                { value: "green", color: "#B1FF1B" },
+                { value: "yellow", color: "#FDC613" },
+                { value: "purple", color: "#7A50EB" },
+                { value: "pink", color: "#FEA9E0" },
+              ].map(opt => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setColor(opt.value)}
+                  className={`w-8 h-12 rounded-full border-2 transition-transform duration-150 flex items-center justify-center ${color === opt.value ? 'scale-125' : 'border-gray-300'}`}
+                  style={{ backgroundColor: opt.color }}
+                  aria-label={opt.value}
+                />
+              ))}
+            </div>
          
           <button
             type="submit"
             disabled={loading}
-            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition-colors duration-200"
+            className="bg-black hover:bg-gray-800 text-white font-bold py-4 px-4 rounded-full border-2 border-black transition-colors duration-200"
           >
             {loading ? "儲存中..." : "送出"}
           </button>
