@@ -436,14 +436,14 @@ export default function Mapbox() {
       )}
 
       <Map
-        mapboxAccessToken="pk.eyJ1Ijoiamllbmh1YWdvbyIsImEiOiJjbTdsNjY0MjMwNDl2MmtzZHloYXY0czNkIn0.mlD3UGH3wR3ZMJmCuHDpSQ"
+        mapboxAccessToken="pk.eyJ1IjoieWVodWFubiIsImEiOiJjbWJ2cXJ2d2cwcnB6MnFwcXljdXV3bTJkIn0.1Qz6Pnf3W57F4cA8d-NRjQ"
         initialViewState={{
           longitude: 121.52817156559162,
           latitude: 25.043949558152605,
           zoom: 17
         }}
         style={{ width: "100vw", height: "100vh" }}
-        mapStyle="mapbox://styles/mapbox/dark-v11"
+        mapStyle="mapbox://styles/yehuann/cmbxckh4800lb01spfcye8l7s"
         onClick={() => {
           setActiveUserInfo(null);
           setActiveShopInfo(null);
