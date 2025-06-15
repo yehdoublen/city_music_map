@@ -21,6 +21,7 @@ export default function Mapbox() {
   const [artist, setArtist] = useState("");
   const [youtube, setYoutube] = useState("");
   const [loadingNowPlaying, setLoadingNowPlaying] = useState(false);
+  const [loadingVideoInfo, setLoadingVideoInfo] = useState(false);
   const songInputRef = useRef();
   const [activeUserInfo, setActiveUserInfo] = useState(null);
   const [nowPlayingMap, setNowPlayingMap] = useState({});
@@ -109,6 +110,52 @@ export default function Mapbox() {
     }
     setLoadingNowPlaying(false);
   };
+
+  // 從 YouTube URL 取得影片資訊並自動儲存
+  const fetchAndSaveVideoInfo = async (url) => {
+    if (!url || !user) return;
+    const videoId = getYoutubeId(url);
+    if (!videoId) return;
+
+    setLoadingVideoInfo(true);
+    try {
+      const response = await fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoId}`);
+      const data = await response.json();
+      
+      if (data.title) {
+        // 解析標題和作者
+        const titleParts = data.title.split('-');
+        const artist = titleParts[0]?.trim() || data.author_name || '';
+        const song = titleParts[1]?.trim() || data.title;
+
+        // 直接儲存到 Firebase
+        await setDoc(doc(db, "user_nowplaying", user.uid), {
+          song,
+          artist,
+          youtube: url,
+          updatedAt: new Date(),
+        });
+
+        // 更新本地狀態
+        setNowPlaying({ song, artist, youtube: url });
+        setYoutube(url);
+        setSong(song);
+        setArtist(artist);
+        setEditMode(false);
+      }
+    } catch (error) {
+      console.error('Error fetching video info:', error);
+    } finally {
+      setLoadingVideoInfo(false);
+    }
+  };
+
+  // 當 YouTube URL 改變時自動獲取影片資訊
+  useEffect(() => {
+    if (youtube) {
+      fetchAndSaveVideoInfo(youtube);
+    }
+  }, [youtube]);
 
   // 點擊頭像時顯示 modal 並載入歌曲資訊
   const handleAvatarClick = () => {
@@ -229,34 +276,22 @@ export default function Mapbox() {
               <div className="text-center">載入中...</div>
             ) : editMode ? (
               <div className="flex flex-col gap-3">
-                <input
-                  ref={songInputRef}
-                  type="text"
-                  placeholder="歌曲名稱"
-                  value={song}
-                  onChange={e => setSong(e.target.value)}
-                  className="border rounded px-3 py-2"
-                />
-                <input
-                  type="text"
-                  placeholder="歌手名稱"
-                  value={artist}
-                  onChange={e => setArtist(e.target.value)}
-                  className="border rounded px-3 py-2"
-                />
-                <input
-                  type="url"
-                  placeholder="YouTube 連結"
-                  value={youtube}
-                  onChange={e => setYoutube(e.target.value)}
-                  className="border rounded px-3 py-2"
-                />
-                <button
-                  className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
-                  onClick={handleSave}
-                >
-                  儲存
-                </button>
+                <div className="relative">
+                  <input
+                    ref={songInputRef}
+                    type="url"
+                    placeholder="貼上 YouTube 連結"
+                    value={youtube}
+                    onChange={e => setYoutube(e.target.value)}
+                    className="border rounded px-3 py-2 w-full"
+                    disabled={loadingVideoInfo}
+                  />
+                  {loadingVideoInfo && (
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+                      獲取中...
+                    </div>
+                  )}
+                </div>
                 <button
                   className="mt-4 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded w-full"
                   onClick={async () => {
@@ -285,7 +320,12 @@ export default function Mapbox() {
                     ></iframe>
                   </div>
                 )}
-                {/* 加號按鈕移到這裡 */}
+                {nowPlaying && (
+                  <div className="text-center">
+                    <div className="text-lg font-bold">{nowPlaying.song}</div>
+                    <div className="text-gray-600">{nowPlaying.artist}</div>
+                  </div>
+                )}
                 <div className="flex justify-center px-16">
                   <button
                     className="mt-2 text-xl text-blue-500 hover:text-blue-700 w-full border border-blue-200 rounded-full p-2"
@@ -295,19 +335,6 @@ export default function Mapbox() {
                     edit
                   </button>
                 </div>
-                  
-                <button
-                  className="mt-4 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded w-full"
-                  onClick={async () => {
-                    if (user) {
-                      await deleteDoc(doc(db, 'users_location', user.uid));
-                    }
-                    await auth.signOut();
-                    router.push('/');
-                  }}
-                >
-                  登出
-                </button>
               </div>
             )}
           </div>
@@ -339,20 +366,26 @@ export default function Mapbox() {
                     <span className="font-bold">正在聽的歌曲</span>
                     <button className="text-gray-400 hover:text-gray-600" onClick={() => setActiveUserInfo(null)}>&times;</button>
                   </div>
-                  <div>&#60;{nowPlayingMap[loc.uid]?.song || <span className="text-gray-400 font-bold text-2xl">未填寫</span>}&#62;</div>
-                  <div>{nowPlayingMap[loc.uid]?.artist || <span className="text-gray-400">未填寫</span>}</div>
-                  {nowPlayingMap[loc.uid]?.youtube && getYoutubeId(nowPlayingMap[loc.uid]?.youtube) && (
-                    <div className="mt-2">
-                      <iframe
-                        width="100%"
-                        height="120"
-                        src={`https://www.youtube.com/embed/${getYoutubeId(nowPlayingMap[loc.uid]?.youtube)}`}
-                        title="YouTube video player"
-                        frameBorder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                      ></iframe>
-                    </div>
+                  {nowPlayingMap[loc.uid] ? (
+                    <>
+                      <div className="text-lg font-bold">{nowPlayingMap[loc.uid].song}</div>
+                      <div className="text-gray-600">{nowPlayingMap[loc.uid].artist}</div>
+                      {nowPlayingMap[loc.uid].youtube && getYoutubeId(nowPlayingMap[loc.uid].youtube) && (
+                        <div className="mt-2">
+                          <iframe
+                            width="100%"
+                            height="120"
+                            src={`https://www.youtube.com/embed/${getYoutubeId(nowPlayingMap[loc.uid].youtube)}`}
+                            title="YouTube video player"
+                            frameBorder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          ></iframe>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="text-gray-400 text-center py-2">未設定歌曲</div>
                   )}
                 </div>
               )}
